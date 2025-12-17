@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cold Call Decision Tree</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --green: #e6f7ec;
+      --yellow: #fff6db;
+      --red: #fdecea;
+      --neutral: #f4f6f8;
+      --border: #d0d7de;
+      --text: #0b0b0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fafafa;
+      color: var(--text);
+    }
+
+    header {
+      padding: 20px;
+      background: #0b0b0b;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .flow {
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+      overflow-x: auto;
+      height: calc(100vh - 80px);
+    }
+
+    .column {
+      min-width: 380px;
+      max-width: 380px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .column h2 {
+      margin: 0;
+      font-size: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .box {
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .green { background: var(--green); }
+    .yellow { background: var(--yellow); }
+    .red { background: var(--red); }
+    .neutral { background: var(--neutral); }
+
+    .label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .script {
+      font-weight: 600;
+    }
+
+    .meta {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    .arrow {
+      text-align: center;
+      font-size: 20px;
+      opacity: 0.5;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header>
+  Cold Call Decision Tree — Visual Call Flow
+</header>
+
+<div class="flow">
+
+  <!-- COLUMN 1: OPEN -->
+  <div class="column">
+    <h2>1️⃣ OPEN</h2>
+
+    <div class="box neutral">
+      <div class="script">
+        “Hey — real quick, are you the one who handles the quotes there, or someone else?”
+      </div>
+    </div>
+
+    <div class="box green">
+      <div class="label">🟢 Green Responses</div>
+      “Yeah, that’s me.”<br>
+      “I handle that.”
+      <div class="meta">Zero resistance. Normal operational answer.</div>
+    </div>
+
+    <div class="box yellow">
+      <div class="label">🟡 Neutral Responses</div>
+      “Who’s calling?”<br>
+      “Why?”<br>
+      “What’s this about?”
+      <div class="meta">Orientation, not rejection.</div>
+    </div>
+
+    <div class="box red">
+      <div class="label">🔴 Red Responses</div>
+      “Are you selling something?”<br>
+      “I don’t have time.”<br>
+      Hang up / silence
+      <div class="meta">Timing or frame test.</div>
+    </div>
+
+    <div class="arrow">➡️</div>
+  </div>
+
+  <!-- COLUMN 2: SAFETY RESET -->
+  <div class="column">
+    <h2>2️⃣ PRESSURE RESET</h2>
+
+    <div class="box neutral">
+      <div class="script">
+        “Perfect — just to be upfront, I’m not calling for a quote or pricing.
+        It’s just a quick question.”
+      </div>
+      <div class="meta">
+        Removes sales pressure. Slows the dance.
+      </div>
+    </div>
+
+    <div class="arrow">➡️</div>
+  </div>
+
+  <!-- COLUMN 3: DIAGNOSTIC -->
+  <div class="column">
+    <h2>3️⃣ DIAGNOSTIC QUESTION</h2>
+
+    <div class="box neutral">
+      <div class="script">
+        “How are jobs mostly coming in for you right now?”
+      </div>
+    </div>
+
+    <div class="box green">
+      <div class="label">🟢 Clear Channels</div>
+      Referrals · Google · Website · Ads
+    </div>
+
+    <div class="box yellow">
+      <div class="label">🟡 Mixed / Inconsistent</div>
+      Comes & goes · Seasonal · A bit of everything
+    </div>
+
+    <div class="box red">
+      <div class="label">🔴 Guarded / Control</div>
+      “Why do you ask?” · “We’re good.”
+    </div>
+
+    <div class="arrow">➡️</div>
+  </div>
+
+  <!-- COLUMN 4: CATEGORY RESPONSES -->
+  <div class="column">
+    <h2>4️⃣ CATEGORY RESPONSE</h2>
+
+    <div class="box green">
+      <div class="script">
+        “Got it — that’s pretty common.”
+      </div>
+      “Is that enough to keep you as busy as you want, or does it come and go?”
+    </div>
+
+    <div class="box yellow">
+      <div class="script">
+        “Yeah, that tracks — I hear that a lot.”
+      </div>
+      “Is that something you’ve just accepted, or tried to smooth out?”
+    </div>
+
+    <div class="box red">
+      <div class="script">
+        “Fair question.”
+      </div>
+      “Before I explain anything, I just want to see if this is even relevant.”
+    </div>
+
+    <div class="arrow">➡️</div>
+  </div>
+
+  <!-- COLUMN 5: MERGE + PERMISSION -->
+  <div class="column">
+    <h2>5️⃣ MERGE & PERMISSION</h2>
+
+    <div class="box neutral">
+      <div class="script">
+        “Got it — the reason I asked is I hear that a lot.”
+      </div>
+      <div class="meta">
+        Authority without selling.
+      </div>
+    </div>
+
+    <div class="box neutral">
+      <div class="script">
+        “Out of curiosity — is that something you’d even want to tighten up,
+        or are you totally fine with how it is?”
+      </div>
+      <div class="meta">
+        Permission gate. Silence after.
+      </div>
+    </div>
+
+    <div class="arrow">➡️</div>
+  </div>
+
+  <!-- COLUMN 6: INVITE -->
+  <div class="column">
+    <h2>6️⃣ INVITE OR EXIT</h2>
+
+    <div class="box green">
+      <div class="script">
+        “This probably isn’t something to unpack on a cold call.”
+      </div>
+      “Would it be a bad idea to spend 15–20 minutes this week
+      looking at it together and seeing if there’s even a fit?”
+    </div>
+
+    <div class="box red">
+      <div class="script">
+        “All good — appreciate you taking a minute.”
+      </div>
+      <div class="meta">
+        Clean exit. No persuasion.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
