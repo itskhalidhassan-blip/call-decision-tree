@@ -4,265 +4,583 @@
   <meta charset="UTF-8" />
   <title>Cold Call Decision Tree</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
-    :root {
-      --green: #e6f7ec;
-      --yellow: #fff6db;
-      --red: #fdecea;
-      --neutral: #f4f6f8;
-      --border: #d0d7de;
-      --text: #0b0b0b;
+    :root{
+      --bg: #0b0f14;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+
+      --blue: #00A6FF;
+      --green: #2CE07B;
+      --yellow: #FFCA3A;
+      --red: #FF4D4D;
+
+      --nodeShadow: 0 12px 30px rgba(0,0,0,.35);
+      --nodeRadius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #fafafa;
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(0,166,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(44,224,123,.16), transparent 55%),
+        radial-gradient(900px 600px at 60% 85%, rgba(255,202,58,.12), transparent 55%),
+        var(--bg);
       color: var(--text);
+      overflow: hidden;
     }
 
-    header {
-      padding: 20px;
-      background: #0b0b0b;
-      color: white;
-      font-size: 18px;
-      font-weight: 600;
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(to bottom, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      backdrop-filter: blur(10px);
     }
 
-    .flow {
-      display: flex;
-      gap: 24px;
-      padding: 24px;
-      overflow-x: auto;
-      height: calc(100vh - 80px);
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+      line-height:1.1;
     }
 
-    .column {
-      min-width: 380px;
-      max-width: 380px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .title .h{
+      font-weight: 760;
+      letter-spacing: .2px;
+      font-size: 15px;
     }
 
-    .column h2 {
-      margin: 0;
-      font-size: 16px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-    }
-
-    .box {
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .green { background: var(--green); }
-    .yellow { background: var(--yellow); }
-    .red { background: var(--red); }
-    .neutral { background: var(--neutral); }
-
-    .label {
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .script {
-      font-weight: 600;
-    }
-
-    .meta {
+    .title .sub{
       font-size: 12px;
-      opacity: 0.8;
-      margin-top: 6px;
+      color: var(--muted);
     }
 
-    .arrow {
-      text-align: center;
-      font-size: 20px;
-      opacity: 0.5;
+    .controls{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      user-select:none;
+      white-space: nowrap;
     }
 
+    .pill{
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+    }
+
+    .stageKey{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .dot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      display:inline-block;
+      border: 1px solid rgba(255,255,255,.22);
+    }
+    .dot.green{ background: rgba(44,224,123,.95); }
+    .dot.yellow{ background: rgba(255,202,58,.95); }
+    .dot.red{ background: rgba(255,77,77,.95); }
+    .dot.blue{ background: rgba(0,166,255,.95); }
+
+    #wrap{
+      width: 100vw;
+      height: calc(100vh - 56px);
+      position: relative;
+    }
+
+    /* SVG */
+    svg{
+      width: 100%;
+      height: 100%;
+      display:block;
+      cursor: grab;
+    }
+    svg:active{ cursor: grabbing; }
+
+    .link{
+      fill: none;
+      stroke: rgba(122, 197, 255, .55);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+    }
+    .linkGlow{
+      fill: none;
+      stroke: rgba(0,166,255,.16);
+      stroke-width: 9;
+      stroke-linecap: round;
+      filter: blur(1px);
+    }
+
+    .label{
+      font-size: 14px;
+      fill: rgba(255,255,255,.80);
+      font-weight: 650;
+      paint-order: stroke;
+      stroke: rgba(0,0,0,.35);
+      stroke-width: 3px;
+    }
+    .label.muted{
+      fill: rgba(255,255,255,.62);
+      font-weight: 600;
+    }
+
+    /* Node styling via foreignObject */
+    .node{
+      filter: drop-shadow(0 12px 26px rgba(0,0,0,.35));
+    }
+    .card{
+      width: 100%;
+      height: 100%;
+      border-radius: var(--nodeRadius);
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .card .bar{
+      padding: 10px 12px;
+      font-weight: 760;
+      letter-spacing: .15px;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+    }
+    .badge{
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      color: rgba(255,255,255,.86);
+      background: rgba(0,0,0,.18);
+      white-space: nowrap;
+    }
+    .card .body{
+      padding: 10px 12px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,.84);
+      line-height: 1.35;
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+    }
+    .script{
+      font-weight: 750;
+      font-size: 13px;
+      color: rgba(255,255,255,.94);
+    }
+    .muted{
+      color: rgba(255,255,255,.70);
+    }
+    .list{
+      margin: 0;
+      padding-left: 16px;
+      color: rgba(255,255,255,.78);
+    }
+    .list li{
+      margin: 2px 0;
+    }
+
+    .blueBar { background: linear-gradient(90deg, rgba(0,166,255,.35), rgba(0,166,255,.08)); }
+    .greenBar{ background: linear-gradient(90deg, rgba(44,224,123,.32), rgba(44,224,123,.08)); }
+    .yellowBar{ background: linear-gradient(90deg, rgba(255,202,58,.30), rgba(255,202,58,.08)); }
+    .redBar  { background: linear-gradient(90deg, rgba(255,77,77,.30), rgba(255,77,77,.08)); }
+
+    .hint{
+      position:absolute;
+      left: 16px;
+      bottom: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 8px 10px;
+      border-radius: 10px;
+      backdrop-filter: blur(8px);
+      user-select:none;
+    }
+
+    .hint kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.82);
+      margin: 0 2px;
+    }
   </style>
 </head>
-
 <body>
 
 <header>
-  Cold Call Decision Tree — Visual Call Flow
+  <div class="title">
+    <div class="h">Cold Call Decision Tree</div>
+    <div class="sub">Acknowledge → One clarifying question → Silence. (Drag to pan • Scroll to zoom)</div>
+  </div>
+
+  <div class="controls">
+    <div class="stageKey pill">
+      <span class="dot blue"></span> Core Step
+      <span style="opacity:.35;margin:0 6px;">|</span>
+      <span class="dot green"></span> Green
+      <span class="dot yellow"></span> Neutral
+      <span class="dot red"></span> Red
+    </div>
+    <div class="pill" id="zoomReadout">Zoom: 100%</div>
+  </div>
 </header>
 
-<div class="flow">
+<div id="wrap">
+  <svg id="svg" viewBox="0 0 1600 980" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L10,5 L0,10 Z" fill="rgba(122, 197, 255, .65)"></path>
+      </marker>
+    </defs>
 
-  <!-- COLUMN 1: OPEN -->
-  <div class="column">
-    <h2>1️⃣ OPEN</h2>
+    <!-- Pan/Zoom group -->
+    <g id="viewport">
 
-    <div class="box neutral">
-      <div class="script">
-        “Hey — real quick, are you the one who handles the quotes there, or someone else?”
-      </div>
-    </div>
+      <!-- CONNECTORS (glow under) -->
+      <path class="linkGlow" d="M800 140 C800 190, 520 190, 520 240"></path>
+      <path class="linkGlow" d="M800 140 C800 190, 800 190, 800 240"></path>
+      <path class="linkGlow" d="M800 140 C800 190, 1080 190, 1080 240"></path>
 
-    <div class="box green">
-      <div class="label">🟢 Green Responses</div>
-      “Yeah, that’s me.”<br>
-      “I handle that.”
-      <div class="meta">Zero resistance. Normal operational answer.</div>
-    </div>
+      <path class="linkGlow" d="M800 360 C800 410, 800 410, 800 460"></path>
 
-    <div class="box yellow">
-      <div class="label">🟡 Neutral Responses</div>
-      “Who’s calling?”<br>
-      “Why?”<br>
-      “What’s this about?”
-      <div class="meta">Orientation, not rejection.</div>
-    </div>
+      <path class="linkGlow" d="M800 600 C800 650, 520 650, 520 720"></path>
+      <path class="linkGlow" d="M800 600 C800 650, 800 650, 800 720"></path>
+      <path class="linkGlow" d="M800 600 C800 650, 1080 650, 1080 720"></path>
 
-    <div class="box red">
-      <div class="label">🔴 Red Responses</div>
-      “Are you selling something?”<br>
-      “I don’t have time.”<br>
-      Hang up / silence
-      <div class="meta">Timing or frame test.</div>
-    </div>
+      <path class="linkGlow" d="M800 820 C800 860, 800 860, 800 900"></path>
 
-    <div class="arrow">➡️</div>
+      <!-- CONNECTORS (main) -->
+      <path class="link" marker-end="url(#arrow)" d="M800 140 C800 190, 520 190, 520 240"></path>
+      <path class="link" marker-end="url(#arrow)" d="M800 140 C800 190, 800 190, 800 240"></path>
+      <path class="link" marker-end="url(#arrow)" d="M800 140 C800 190, 1080 190, 1080 240"></path>
+
+      <path class="link" marker-end="url(#arrow)" d="M800 360 C800 410, 800 410, 800 460"></path>
+
+      <path class="link" marker-end="url(#arrow)" d="M800 600 C800 650, 520 650, 520 720"></path>
+      <path class="link" marker-end="url(#arrow)" d="M800 600 C800 650, 800 650, 800 720"></path>
+      <path class="link" marker-end="url(#arrow)" d="M800 600 C800 650, 1080 650, 1080 720"></path>
+
+      <path class="link" marker-end="url(#arrow)" d="M800 820 C800 860, 800 860, 800 900"></path>
+
+      <!-- EDGE LABELS -->
+      <text x="560" y="210" class="label">Green / Neutral / Red?</text>
+      <text x="815" y="430" class="label muted">then →</text>
+      <text x="560" y="680" class="label">Answer Type</text>
+
+      <!-- NODES -->
+      <!-- TOP: OPEN -->
+      <g class="node">
+        <foreignObject x="560" y="40" width="480" height="110">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar blueBar">
+              1️⃣ OPEN
+              <span class="badge">Goal: right person + calm</span>
+            </div>
+            <div class="body">
+              <div class="script">“Hey — real quick, are you the one who handles the quotes there, or someone else?”</div>
+              <div class="muted">Pause. Let them answer. Don’t fill silence.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- LEFT: GREEN RESPONSES -->
+      <g class="node">
+        <foreignObject x="300" y="240" width="440" height="160">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar greenBar">
+              ✅ GREEN RESPONSES (they’re dancing)
+              <span class="badge">You’re in</span>
+            </div>
+            <div class="body">
+              <ul class="list">
+                <li>“Yeah, that’s me.” / “I handle that.”</li>
+                <li>“Sometimes — what do you need?”</li>
+                <li>“Depends — what’s this about?” <span class="muted">(curious, not hostile)</span></li>
+              </ul>
+              <div class="muted"><b>Mental state:</b> “normal operational question.”</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- CENTER: NEUTRAL RESPONSES -->
+      <g class="node">
+        <foreignObject x="580" y="240" width="440" height="160">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar yellowBar">
+              🟡 NEUTRAL RESPONSES (dance is possible)
+              <span class="badge">Orientation</span>
+            </div>
+            <div class="body">
+              <ul class="list">
+                <li>“Who’s calling?”</li>
+                <li>“Why?”</li>
+                <li>“What’s this about?”</li>
+              </ul>
+              <div class="muted"><b>Rule:</b> NOT rejection. Don’t overreact.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- RIGHT: RED RESPONSES -->
+      <g class="node">
+        <foreignObject x="860" y="240" width="440" height="160">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar redBar">
+              🔴 RED RESPONSES (fragile)
+              <span class="badge">Frame test / timing</span>
+            </div>
+            <div class="body">
+              <ul class="list">
+                <li>“Are you trying to sell me something?”</li>
+                <li>“Just tell me what you want.”</li>
+                <li>“I don’t have time.” / “Send an email.”</li>
+                <li>Hang up / silence</li>
+              </ul>
+              <div class="muted"><b>Meaning:</b> wrong moment, not “you.”</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- PRESSURE RESET (MERGE) -->
+      <g class="node">
+        <foreignObject x="520" y="460" width="560" height="150">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar blueBar">
+              2️⃣ PRESSURE RESET (universal)
+              <span class="badge">De-weaponize sales fear</span>
+            </div>
+            <div class="body">
+              <div class="script">“Perfect — just to be upfront, I’m not calling for a quote or pricing. It’s just a quick question.”</div>
+              <div class="muted">Tone: calm, boring, matter-of-fact. Then pause.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- DIAGNOSTIC QUESTION -->
+      <g class="node">
+        <foreignObject x="520" y="640" width="560" height="150">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar blueBar">
+              3️⃣ DIAGNOSTIC
+              <span class="badge">Channel → reliability</span>
+            </div>
+            <div class="body">
+              <div class="script">“How are jobs mostly coming in for you right now?”</div>
+              <div class="muted">Listen for category. Don’t pitch. Don’t teach.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- LEFT: CATEGORY A/B/C -->
+      <g class="node">
+        <foreignObject x="260" y="720" width="520" height="180">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar greenBar">
+              🟢 CLEAR CHANNEL ANSWERS
+              <span class="badge">Best case</span>
+            </div>
+            <div class="body">
+              <div><b>Referrals / Word of Mouth / Repeats</b> → “Does it come and go?”</div>
+              <div><b>Google / Website / Maps</b> → “Consistent or hit-or-miss?”</div>
+              <div><b>Ads / Angi / HA / Thumbtack</b> → “Good jobs or mixed bag?”</div>
+              <div class="muted">Goal: move from channel → reliability/quality.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- CENTER: INCONSISTENT -->
+      <g class="node">
+        <foreignObject x="540" y="720" width="520" height="180">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar yellowBar">
+              🟡 MIXED / SEASONAL
+              <span class="badge">High potential</span>
+            </div>
+            <div class="body">
+              <div class="script">“Yeah, that tracks — I hear that a lot.”</div>
+              <div>“Is that something you’ve accepted as normal, or tried to smooth out?”</div>
+              <div class="muted">Goal: accepted pain → questioned pain.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- RIGHT: GUARD / CONTROL -->
+      <g class="node">
+        <foreignObject x="820" y="720" width="520" height="180">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar redBar">
+              🔴 GUARD / CONTROL
+              <span class="badge">Recover or exit</span>
+            </div>
+            <div class="body">
+              <div class="script">“Fair question.”</div>
+              <div>“Before I explain anything, I just want to see if this is even relevant on your end.”</div>
+              <div class="muted">No defending. No explaining. Calm.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- PERMISSION GATE -->
+      <g class="node">
+        <foreignObject x="460" y="900" width="680" height="170">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar blueBar">
+              4️⃣ MERGE + PERMISSION GATE
+              <span class="badge">Control in their hands</span>
+            </div>
+            <div class="body">
+              <div class="script">“Got it — the reason I asked is I hear that a lot.”</div>
+              <div class="script">“Out of curiosity — is that something you’d even want to tighten up, or are you totally fine with how it is?”</div>
+              <div class="muted"><b>Rule:</b> Ask → silence. Let them decide.</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+      <!-- INVITE / EXIT (below the fold; scroll/zoom/pan to see) -->
+      <path class="linkGlow" d="M800 1070 C800 1120, 800 1120, 800 1200"></path>
+      <path class="link" marker-end="url(#arrow)" d="M800 1070 C800 1120, 800 1120, 800 1200"></path>
+
+      <g class="node">
+        <foreignObject x="460" y="1200" width="680" height="190">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
+            <div class="bar greenBar">
+              5️⃣ INVITE (only if green/maybe)
+              <span class="badge">Time-boxed • low pressure</span>
+            </div>
+            <div class="body">
+              <div class="script">“This probably isn’t something to unpack on a cold call.”</div>
+              <div class="script">“Would it be a bad idea to spend 15–20 minutes this week looking at it together and seeing if there’s even a fit?”</div>
+              <div class="muted">If they say no → “All good — appreciate you taking a minute.”</div>
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+
+    </g>
+  </svg>
+
+  <div class="hint">
+    Drag to pan • Scroll to zoom • <kbd>Double-click</kbd> resets view
   </div>
-
-  <!-- COLUMN 2: SAFETY RESET -->
-  <div class="column">
-    <h2>2️⃣ PRESSURE RESET</h2>
-
-    <div class="box neutral">
-      <div class="script">
-        “Perfect — just to be upfront, I’m not calling for a quote or pricing.
-        It’s just a quick question.”
-      </div>
-      <div class="meta">
-        Removes sales pressure. Slows the dance.
-      </div>
-    </div>
-
-    <div class="arrow">➡️</div>
-  </div>
-
-  <!-- COLUMN 3: DIAGNOSTIC -->
-  <div class="column">
-    <h2>3️⃣ DIAGNOSTIC QUESTION</h2>
-
-    <div class="box neutral">
-      <div class="script">
-        “How are jobs mostly coming in for you right now?”
-      </div>
-    </div>
-
-    <div class="box green">
-      <div class="label">🟢 Clear Channels</div>
-      Referrals · Google · Website · Ads
-    </div>
-
-    <div class="box yellow">
-      <div class="label">🟡 Mixed / Inconsistent</div>
-      Comes & goes · Seasonal · A bit of everything
-    </div>
-
-    <div class="box red">
-      <div class="label">🔴 Guarded / Control</div>
-      “Why do you ask?” · “We’re good.”
-    </div>
-
-    <div class="arrow">➡️</div>
-  </div>
-
-  <!-- COLUMN 4: CATEGORY RESPONSES -->
-  <div class="column">
-    <h2>4️⃣ CATEGORY RESPONSE</h2>
-
-    <div class="box green">
-      <div class="script">
-        “Got it — that’s pretty common.”
-      </div>
-      “Is that enough to keep you as busy as you want, or does it come and go?”
-    </div>
-
-    <div class="box yellow">
-      <div class="script">
-        “Yeah, that tracks — I hear that a lot.”
-      </div>
-      “Is that something you’ve just accepted, or tried to smooth out?”
-    </div>
-
-    <div class="box red">
-      <div class="script">
-        “Fair question.”
-      </div>
-      “Before I explain anything, I just want to see if this is even relevant.”
-    </div>
-
-    <div class="arrow">➡️</div>
-  </div>
-
-  <!-- COLUMN 5: MERGE + PERMISSION -->
-  <div class="column">
-    <h2>5️⃣ MERGE & PERMISSION</h2>
-
-    <div class="box neutral">
-      <div class="script">
-        “Got it — the reason I asked is I hear that a lot.”
-      </div>
-      <div class="meta">
-        Authority without selling.
-      </div>
-    </div>
-
-    <div class="box neutral">
-      <div class="script">
-        “Out of curiosity — is that something you’d even want to tighten up,
-        or are you totally fine with how it is?”
-      </div>
-      <div class="meta">
-        Permission gate. Silence after.
-      </div>
-    </div>
-
-    <div class="arrow">➡️</div>
-  </div>
-
-  <!-- COLUMN 6: INVITE -->
-  <div class="column">
-    <h2>6️⃣ INVITE OR EXIT</h2>
-
-    <div class="box green">
-      <div class="script">
-        “This probably isn’t something to unpack on a cold call.”
-      </div>
-      “Would it be a bad idea to spend 15–20 minutes this week
-      looking at it together and seeing if there’s even a fit?”
-    </div>
-
-    <div class="box red">
-      <div class="script">
-        “All good — appreciate you taking a minute.”
-      </div>
-      <div class="meta">
-        Clean exit. No persuasion.
-      </div>
-    </div>
-  </div>
-
 </div>
+
+<script>
+  // Simple pan/zoom for the SVG group (#viewport)
+  const svg = document.getElementById('svg');
+  const viewport = document.getElementById('viewport');
+  const zoomReadout = document.getElementById('zoomReadout');
+
+  let state = {
+    scale: 1,
+    x: 0,
+    y: 0,
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    startPanX: 0,
+    startPanY: 0
+  };
+
+  function applyTransform(){
+    viewport.setAttribute('transform', `translate(${state.x} ${state.y}) scale(${state.scale})`);
+    zoomReadout.textContent = `Zoom: ${Math.round(state.scale * 100)}%`;
+  }
+
+  function clampScale(s){
+    return Math.min(2.2, Math.max(0.55, s));
+  }
+
+  // Start with a slightly “zoomed in” centered view
+  state.scale = 0.92;
+  state.x = 0;
+  state.y = 0;
+  applyTransform();
+
+  svg.addEventListener('mousedown', (e) => {
+    state.dragging = true;
+    state.startX = e.clientX;
+    state.startY = e.clientY;
+    state.startPanX = state.x;
+    state.startPanY = state.y;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if(!state.dragging) return;
+    const dx = e.clientX - state.startX;
+    const dy = e.clientY - state.startY;
+    state.x = state.startPanX + dx;
+    state.y = state.startPanY + dy;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    state.dragging = false;
+  });
+
+  svg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+
+    // Zoom around cursor point (approx)
+    const delta = e.deltaY > 0 ? -0.06 : 0.06;
+    const newScale = clampScale(state.scale + delta);
+
+    const rect = svg.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    // Adjust pan so zoom feels anchored
+    const scaleRatio = newScale / state.scale;
+    state.x = cx - scaleRatio * (cx - state.x);
+    state.y = cy - scaleRatio * (cy - state.y);
+
+    state.scale = newScale;
+    applyTransform();
+  }, { passive: false });
+
+  svg.addEventListener('dblclick', () => {
+    state.scale = 0.92;
+    state.x = 0;
+    state.y = 0;
+    applyTransform();
+  });
+</script>
 
 </body>
 </html>
