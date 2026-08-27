@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  font-family:
+    'Helvetica Neue ME', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+#root {
+  min-height: 100%;
+}
