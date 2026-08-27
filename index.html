@@ -1,586 +1,255 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Cold Call Decision Tree</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root{
-      --bg: #0b0f14;
-      --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.08);
-      --stroke: rgba(255,255,255,.18);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.70);
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://images.pexels.com" />
+    <title>HALDER</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --black: #000;
+        --near-black: #050505;
+        --white: #f2f1ed;
+        --quiet: #aaa9a4;
+        --rule: #242424;
+      }
 
-      --blue: #00A6FF;
-      --green: #2CE07B;
-      --yellow: #FFCA3A;
-      --red: #FF4D4D;
+      * {
+        box-sizing: border-box;
+      }
 
-      --nodeShadow: 0 12px 30px rgba(0,0,0,.35);
-      --nodeRadius: 14px;
-    }
+      html {
+        background: var(--black);
+      }
 
-    * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--black);
+        color: var(--white);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 300;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
 
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(1200px 700px at 20% 10%, rgba(0,166,255,.18), transparent 55%),
-        radial-gradient(900px 600px at 80% 20%, rgba(44,224,123,.16), transparent 55%),
-        radial-gradient(900px 600px at 60% 85%, rgba(255,202,58,.12), transparent 55%),
-        var(--bg);
-      color: var(--text);
-      overflow: hidden;
-    }
+      a {
+        color: inherit;
+      }
 
-    header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 16px;
-      padding: 14px 18px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(to bottom, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      backdrop-filter: blur(10px);
-    }
+      .hero {
+        position: relative;
+        min-height: 100vh;
+        min-height: 100svh;
+        overflow: hidden;
+        isolation: isolate;
+        background: var(--black);
+      }
 
-    .title{
-      display:flex;
-      flex-direction:column;
-      gap: 2px;
-      line-height:1.1;
-    }
+      .hero-media {
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 54%;
+        filter: brightness(0.56) saturate(0.72) contrast(1.04);
+        pointer-events: none;
+        user-select: none;
+      }
 
-    .title .h{
-      font-weight: 760;
-      letter-spacing: .2px;
-      font-size: 15px;
-    }
+      .name,
+      .hero-title,
+      .hero .text-link {
+        opacity: 0;
+        animation: appear 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
 
-    .title .sub{
-      font-size: 12px;
-      color: var(--muted);
-    }
+      .name {
+        position: absolute;
+        top: clamp(1.5rem, 3vw, 2.75rem);
+        left: clamp(1.25rem, 4vw, 4.5rem);
+        margin: 0;
+        font-size: 0.69rem;
+        font-weight: 500;
+        letter-spacing: 0.065em;
+        line-height: 1;
+        animation-delay: 80ms;
+      }
 
-    .controls{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      user-select:none;
-      white-space: nowrap;
-    }
+      .hero-title {
+        position: absolute;
+        top: 66%;
+        left: clamp(1.25rem, 4vw, 4.5rem);
+        margin: 0;
+        max-width: calc(100vw - 2.5rem);
+        font-size: clamp(0.84rem, 4.25vw, 3.45rem);
+        font-weight: 300;
+        letter-spacing: -0.032em;
+        line-height: 1;
+        white-space: nowrap;
+        animation-delay: 230ms;
+      }
 
-    .pill{
-      padding: 6px 10px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
-    }
+      .text-link {
+        display: inline-block;
+        width: max-content;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid currentColor;
+        font-size: 0.78rem;
+        font-weight: 400;
+        line-height: 1;
+        text-decoration: none;
+        transition: color 180ms ease, border-color 180ms ease;
+      }
 
-    .stageKey{
-      display:flex;
-      gap: 8px;
-      align-items:center;
-    }
-    .dot{
-      width: 10px; height: 10px;
-      border-radius: 999px;
-      display:inline-block;
-      border: 1px solid rgba(255,255,255,.22);
-    }
-    .dot.green{ background: rgba(44,224,123,.95); }
-    .dot.yellow{ background: rgba(255,202,58,.95); }
-    .dot.red{ background: rgba(255,77,77,.95); }
-    .dot.blue{ background: rgba(0,166,255,.95); }
+      .hero .text-link {
+        position: absolute;
+        right: clamp(1.25rem, 4vw, 4.5rem);
+        bottom: clamp(1.75rem, 4vw, 3.5rem);
+        animation-delay: 400ms;
+      }
 
-    #wrap{
-      width: 100vw;
-      height: calc(100vh - 56px);
-      position: relative;
-    }
+      .text-link:hover {
+        color: var(--quiet);
+        border-color: var(--quiet);
+      }
 
-    /* SVG */
-    svg{
-      width: 100%;
-      height: 100%;
-      display:block;
-      cursor: grab;
-    }
-    svg:active{ cursor: grabbing; }
+      .text-link:focus-visible,
+      .call-link:focus-visible {
+        outline: 1px solid var(--white);
+        outline-offset: 0.45rem;
+      }
 
-    .link{
-      fill: none;
-      stroke: rgba(122, 197, 255, .55);
-      stroke-width: 2.2;
-      stroke-linecap: round;
-    }
-    .linkGlow{
-      fill: none;
-      stroke: rgba(0,166,255,.16);
-      stroke-width: 9;
-      stroke-linecap: round;
-      filter: blur(1px);
-    }
+      .work {
+        min-height: 100vh;
+        min-height: 100svh;
+        padding: clamp(2rem, 5vw, 5rem) clamp(1.25rem, 4vw, 4.5rem);
+        background: var(--near-black);
+        display: flex;
+        flex-direction: column;
+      }
 
-    .label{
-      font-size: 14px;
-      fill: rgba(255,255,255,.80);
-      font-weight: 650;
-      paint-order: stroke;
-      stroke: rgba(0,0,0,.35);
-      stroke-width: 3px;
-    }
-    .label.muted{
-      fill: rgba(255,255,255,.62);
-      font-weight: 600;
-    }
+      .statement {
+        width: min(100%, 56rem);
+        margin: clamp(2.5rem, 8vh, 6.5rem) 0 0;
+        font-size: clamp(1.9rem, 4.1vw, 3.9rem);
+        font-weight: 300;
+        letter-spacing: -0.045em;
+        line-height: 1.08;
+      }
 
-    /* Node styling via foreignObject */
-    .node{
-      filter: drop-shadow(0 12px 26px rgba(0,0,0,.35));
-    }
-    .card{
-      width: 100%;
-      height: 100%;
-      border-radius: var(--nodeRadius);
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-    }
-    .card .bar{
-      padding: 10px 12px;
-      font-weight: 760;
-      letter-spacing: .15px;
-      font-size: 13px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-    }
-    .badge{
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.16);
-      color: rgba(255,255,255,.86);
-      background: rgba(0,0,0,.18);
-      white-space: nowrap;
-    }
-    .card .body{
-      padding: 10px 12px 12px;
-      font-size: 12px;
-      color: rgba(255,255,255,.84);
-      line-height: 1.35;
-      display:flex;
-      flex-direction:column;
-      gap: 8px;
-    }
-    .script{
-      font-weight: 750;
-      font-size: 13px;
-      color: rgba(255,255,255,.94);
-    }
-    .muted{
-      color: rgba(255,255,255,.70);
-    }
-    .list{
-      margin: 0;
-      padding-left: 16px;
-      color: rgba(255,255,255,.78);
-    }
-    .list li{
-      margin: 2px 0;
-    }
+      .proof {
+        width: min(100%, 30rem);
+        margin: clamp(5.5rem, 17vh, 11rem) 0 0 auto;
+        padding: 0;
+        color: var(--quiet);
+        list-style: none;
+        font-size: clamp(0.94rem, 1.2vw, 1.08rem);
+        line-height: 1.5;
+      }
 
-    .blueBar { background: linear-gradient(90deg, rgba(0,166,255,.35), rgba(0,166,255,.08)); }
-    .greenBar{ background: linear-gradient(90deg, rgba(44,224,123,.32), rgba(44,224,123,.08)); }
-    .yellowBar{ background: linear-gradient(90deg, rgba(255,202,58,.30), rgba(255,202,58,.08)); }
-    .redBar  { background: linear-gradient(90deg, rgba(255,77,77,.30), rgba(255,77,77,.08)); }
+      .proof li + li {
+        margin-top: 0.55rem;
+      }
 
-    .hint{
-      position:absolute;
-      left: 16px;
-      bottom: 14px;
-      font-size: 12px;
-      color: rgba(255,255,255,.70);
-      background: rgba(0,0,0,.22);
-      border: 1px solid rgba(255,255,255,.12);
-      padding: 8px 10px;
-      border-radius: 10px;
-      backdrop-filter: blur(8px);
-      user-select:none;
-    }
+      .conversion {
+        margin-top: auto;
+        padding-top: 1.1rem;
+        border-top: 1px solid var(--rule);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 2rem;
+      }
 
-    .hint kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 7px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.82);
-      margin: 0 2px;
-    }
-  </style>
-</head>
-<body>
+      .call-link {
+        font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+        font-weight: 300;
+        line-height: 1.2;
+        text-decoration: none;
+        transition: color 180ms ease;
+      }
 
-<header>
-  <div class="title">
-    <div class="h">Cold Call Decision Tree</div>
-    <div class="sub">Acknowledge → One clarifying question → Silence. (Drag to pan • Scroll to zoom)</div>
-  </div>
+      .call-link:hover {
+        color: var(--quiet);
+      }
 
-  <div class="controls">
-    <div class="stageKey pill">
-      <span class="dot blue"></span> Core Step
-      <span style="opacity:.35;margin:0 6px;">|</span>
-      <span class="dot green"></span> Green
-      <span class="dot yellow"></span> Neutral
-      <span class="dot red"></span> Red
-    </div>
-    <div class="pill" id="zoomReadout">Zoom: 100%</div>
-  </div>
-</header>
+      @keyframes appear {
+        to {
+          opacity: 1;
+        }
+      }
 
-<div id="wrap">
-  <svg id="svg" viewBox="0 0 1600 980" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,0 L10,5 L0,10 Z" fill="rgba(122, 197, 255, .65)"></path>
-      </marker>
-    </defs>
+      @media (max-width: 35rem) {
+        .hero-title {
+          top: 68%;
+        }
 
-    <!-- Pan/Zoom group -->
-    <g id="viewport">
+        .proof {
+          margin-left: 0;
+        }
 
-      <!-- CONNECTORS (glow under) -->
-      <path class="linkGlow" d="M800 140 C800 190, 520 190, 520 240"></path>
-      <path class="linkGlow" d="M800 140 C800 190, 800 190, 800 240"></path>
-      <path class="linkGlow" d="M800 140 C800 190, 1080 190, 1080 240"></path>
+        .conversion {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 1.4rem;
+        }
+      }
 
-      <path class="linkGlow" d="M800 360 C800 410, 800 410, 800 460"></path>
+      @media (prefers-reduced-motion: reduce) {
+        .name,
+        .hero-title,
+        .hero .text-link {
+          opacity: 1;
+          animation: none;
+        }
 
-      <path class="linkGlow" d="M800 600 C800 650, 520 650, 520 720"></path>
-      <path class="linkGlow" d="M800 600 C800 650, 800 650, 800 720"></path>
-      <path class="linkGlow" d="M800 600 C800 650, 1080 650, 1080 720"></path>
+        .text-link,
+        .call-link {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body id="top">
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          class="hero-media"
+          src="https://images.pexels.com/photos/34610816/pexels-photo-34610816.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=2400"
+          alt=""
+          fetchpriority="high"
+          decoding="async"
+        />
+        <p class="name">HALDER</p>
+        <h1 class="hero-title" id="hero-title">
+          THE SITE SHOULD FEEL LIKE A PLACE
+        </h1>
+        <a class="text-link" href="#work">See the work</a>
+      </section>
 
-      <path class="linkGlow" d="M800 820 C800 860, 800 860, 800 900"></path>
+      <section class="work" id="work" aria-label="About HALDER">
+        <p class="statement">
+          We make sites that qualify the room before they ask for the job.
+        </p>
 
-      <!-- CONNECTORS (main) -->
-      <path class="link" marker-end="url(#arrow)" d="M800 140 C800 190, 520 190, 520 240"></path>
-      <path class="link" marker-end="url(#arrow)" d="M800 140 C800 190, 800 190, 800 240"></path>
-      <path class="link" marker-end="url(#arrow)" d="M800 140 C800 190, 1080 190, 1080 240"></path>
+        <ul class="proof">
+          <li>Built for people who already know.</li>
+          <li>Quiet first. Then the number.</li>
+          <li>Local work. Private pieces.</li>
+        </ul>
 
-      <path class="link" marker-end="url(#arrow)" d="M800 360 C800 410, 800 410, 800 460"></path>
-
-      <path class="link" marker-end="url(#arrow)" d="M800 600 C800 650, 520 650, 520 720"></path>
-      <path class="link" marker-end="url(#arrow)" d="M800 600 C800 650, 800 650, 800 720"></path>
-      <path class="link" marker-end="url(#arrow)" d="M800 600 C800 650, 1080 650, 1080 720"></path>
-
-      <path class="link" marker-end="url(#arrow)" d="M800 820 C800 860, 800 860, 800 900"></path>
-
-      <!-- EDGE LABELS -->
-      <text x="560" y="210" class="label">Green / Neutral / Red?</text>
-      <text x="815" y="430" class="label muted">then →</text>
-      <text x="560" y="680" class="label">Answer Type</text>
-
-      <!-- NODES -->
-      <!-- TOP: OPEN -->
-      <g class="node">
-        <foreignObject x="560" y="40" width="480" height="110">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar blueBar">
-              1️⃣ OPEN
-              <span class="badge">Goal: right person + calm</span>
-            </div>
-            <div class="body">
-              <div class="script">“Hey — real quick, are you the one who handles the quotes there, or someone else?”</div>
-              <div class="muted">Pause. Let them answer. Don’t fill silence.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- LEFT: GREEN RESPONSES -->
-      <g class="node">
-        <foreignObject x="300" y="240" width="440" height="160">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar greenBar">
-              ✅ GREEN RESPONSES (they’re dancing)
-              <span class="badge">You’re in</span>
-            </div>
-            <div class="body">
-              <ul class="list">
-                <li>“Yeah, that’s me.” / “I handle that.”</li>
-                <li>“Sometimes — what do you need?”</li>
-                <li>“Depends — what’s this about?” <span class="muted">(curious, not hostile)</span></li>
-              </ul>
-              <div class="muted"><b>Mental state:</b> “normal operational question.”</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- CENTER: NEUTRAL RESPONSES -->
-      <g class="node">
-        <foreignObject x="580" y="240" width="440" height="160">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar yellowBar">
-              🟡 NEUTRAL RESPONSES (dance is possible)
-              <span class="badge">Orientation</span>
-            </div>
-            <div class="body">
-              <ul class="list">
-                <li>“Who’s calling?”</li>
-                <li>“Why?”</li>
-                <li>“What’s this about?”</li>
-              </ul>
-              <div class="muted"><b>Rule:</b> NOT rejection. Don’t overreact.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- RIGHT: RED RESPONSES -->
-      <g class="node">
-        <foreignObject x="860" y="240" width="440" height="160">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar redBar">
-              🔴 RED RESPONSES (fragile)
-              <span class="badge">Frame test / timing</span>
-            </div>
-            <div class="body">
-              <ul class="list">
-                <li>“Are you trying to sell me something?”</li>
-                <li>“Just tell me what you want.”</li>
-                <li>“I don’t have time.” / “Send an email.”</li>
-                <li>Hang up / silence</li>
-              </ul>
-              <div class="muted"><b>Meaning:</b> wrong moment, not “you.”</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- PRESSURE RESET (MERGE) -->
-      <g class="node">
-        <foreignObject x="520" y="460" width="560" height="150">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar blueBar">
-              2️⃣ PRESSURE RESET (universal)
-              <span class="badge">De-weaponize sales fear</span>
-            </div>
-            <div class="body">
-              <div class="script">“Perfect — just to be upfront, I’m not calling for a quote or pricing. It’s just a quick question.”</div>
-              <div class="muted">Tone: calm, boring, matter-of-fact. Then pause.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- DIAGNOSTIC QUESTION -->
-      <g class="node">
-        <foreignObject x="520" y="640" width="560" height="150">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar blueBar">
-              3️⃣ DIAGNOSTIC
-              <span class="badge">Channel → reliability</span>
-            </div>
-            <div class="body">
-              <div class="script">“How are jobs mostly coming in for you right now?”</div>
-              <div class="muted">Listen for category. Don’t pitch. Don’t teach.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- LEFT: CATEGORY A/B/C -->
-      <g class="node">
-        <foreignObject x="260" y="720" width="520" height="180">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar greenBar">
-              🟢 CLEAR CHANNEL ANSWERS
-              <span class="badge">Best case</span>
-            </div>
-            <div class="body">
-              <div><b>Referrals / Word of Mouth / Repeats</b> → “Does it come and go?”</div>
-              <div><b>Google / Website / Maps</b> → “Consistent or hit-or-miss?”</div>
-              <div><b>Ads / Angi / HA / Thumbtack</b> → “Good jobs or mixed bag?”</div>
-              <div class="muted">Goal: move from channel → reliability/quality.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- CENTER: INCONSISTENT -->
-      <g class="node">
-        <foreignObject x="540" y="720" width="520" height="180">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar yellowBar">
-              🟡 MIXED / SEASONAL
-              <span class="badge">High potential</span>
-            </div>
-            <div class="body">
-              <div class="script">“Yeah, that tracks — I hear that a lot.”</div>
-              <div>“Is that something you’ve accepted as normal, or tried to smooth out?”</div>
-              <div class="muted">Goal: accepted pain → questioned pain.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- RIGHT: GUARD / CONTROL -->
-      <g class="node">
-        <foreignObject x="820" y="720" width="520" height="180">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar redBar">
-              🔴 GUARD / CONTROL
-              <span class="badge">Recover or exit</span>
-            </div>
-            <div class="body">
-              <div class="script">“Fair question.”</div>
-              <div>“Before I explain anything, I just want to see if this is even relevant on your end.”</div>
-              <div class="muted">No defending. No explaining. Calm.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- PERMISSION GATE -->
-      <g class="node">
-        <foreignObject x="460" y="900" width="680" height="170">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar blueBar">
-              4️⃣ MERGE + PERMISSION GATE
-              <span class="badge">Control in their hands</span>
-            </div>
-            <div class="body">
-              <div class="script">“Got it — the reason I asked is I hear that a lot.”</div>
-              <div class="script">“Out of curiosity — is that something you’d even want to tighten up, or are you totally fine with how it is?”</div>
-              <div class="muted"><b>Rule:</b> Ask → silence. Let them decide.</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-      <!-- INVITE / EXIT (below the fold; scroll/zoom/pan to see) -->
-      <path class="linkGlow" d="M800 1070 C800 1120, 800 1120, 800 1200"></path>
-      <path class="link" marker-end="url(#arrow)" d="M800 1070 C800 1120, 800 1120, 800 1200"></path>
-
-      <g class="node">
-        <foreignObject x="460" y="1200" width="680" height="190">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="card">
-            <div class="bar greenBar">
-              5️⃣ INVITE (only if green/maybe)
-              <span class="badge">Time-boxed • low pressure</span>
-            </div>
-            <div class="body">
-              <div class="script">“This probably isn’t something to unpack on a cold call.”</div>
-              <div class="script">“Would it be a bad idea to spend 15–20 minutes this week looking at it together and seeing if there’s even a fit?”</div>
-              <div class="muted">If they say no → “All good — appreciate you taking a minute.”</div>
-            </div>
-          </div>
-        </foreignObject>
-      </g>
-
-    </g>
-  </svg>
-
-  <div class="hint">
-    Drag to pan • Scroll to zoom • <kbd>Double-click</kbd> resets view
-  </div>
-</div>
-
-<script>
-  // Simple pan/zoom for the SVG group (#viewport)
-  const svg = document.getElementById('svg');
-  const viewport = document.getElementById('viewport');
-  const zoomReadout = document.getElementById('zoomReadout');
-
-  let state = {
-    scale: 1,
-    x: 0,
-    y: 0,
-    dragging: false,
-    startX: 0,
-    startY: 0,
-    startPanX: 0,
-    startPanY: 0
-  };
-
-  function applyTransform(){
-    viewport.setAttribute('transform', `translate(${state.x} ${state.y}) scale(${state.scale})`);
-    zoomReadout.textContent = `Zoom: ${Math.round(state.scale * 100)}%`;
-  }
-
-  function clampScale(s){
-    return Math.min(2.2, Math.max(0.55, s));
-  }
-
-  // Start with a slightly “zoomed in” centered view
-  state.scale = 0.92;
-  state.x = 0;
-  state.y = 0;
-  applyTransform();
-
-  svg.addEventListener('mousedown', (e) => {
-    state.dragging = true;
-    state.startX = e.clientX;
-    state.startY = e.clientY;
-    state.startPanX = state.x;
-    state.startPanY = state.y;
-  });
-
-  window.addEventListener('mousemove', (e) => {
-    if(!state.dragging) return;
-    const dx = e.clientX - state.startX;
-    const dy = e.clientY - state.startY;
-    state.x = state.startPanX + dx;
-    state.y = state.startPanY + dy;
-    applyTransform();
-  });
-
-  window.addEventListener('mouseup', () => {
-    state.dragging = false;
-  });
-
-  svg.addEventListener('wheel', (e) => {
-    e.preventDefault();
-
-    // Zoom around cursor point (approx)
-    const delta = e.deltaY > 0 ? -0.06 : 0.06;
-    const newScale = clampScale(state.scale + delta);
-
-    const rect = svg.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
-
-    // Adjust pan so zoom feels anchored
-    const scaleRatio = newScale / state.scale;
-    state.x = cx - scaleRatio * (cx - state.x);
-    state.y = cy - scaleRatio * (cy - state.y);
-
-    state.scale = newScale;
-    applyTransform();
-  }, { passive: false });
-
-  svg.addEventListener('dblclick', () => {
-    state.scale = 0.92;
-    state.x = 0;
-    state.y = 0;
-    applyTransform();
-  });
-</script>
-
-</body>
+        <div class="conversion">
+          <a class="call-link" href="tel:+15555550100">
+            Call +1 555 555 0100
+          </a>
+          <a class="text-link" href="#work">See the work</a>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
